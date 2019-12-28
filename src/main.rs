@@ -4,6 +4,8 @@ use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::Result;
+use std::io;
+
 
 #[derive(Deserialize, Debug, PartialEq)]
 struct Tag {
@@ -22,27 +24,25 @@ AutoTagger <path-to-tag-map>
 }
 
 fn main() {
+
+    // check arguments
     let args: Vec<_> = env::args().collect();
     if args.len() < 2 {
         useage();
         std::process::exit(1);
     }
 
-    let known_tags = get_tag_mapping(&args[1]).unwrap();
+    let tag_map = get_tag_map(&args[1]).unwrap();
 
-    // just for testing
-    let original = r#"
-        {
-            "name": "palo",
-            "description" : "this is the description to search"
-        }"#;
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).unwrap();
 
-    let output = parse_and_render(&original, &known_tags);
+    let output = parse_and_render(&input, &tag_map);
     println!("{}", output);
 }
 
-fn get_tag_mapping(file: &str) -> Result<Tags> {
-    // read in known_tags file
+fn get_tag_map(file: &str) -> Result<Tags> {
+    // read in tag_map file
     let mut file = File::open(&file)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
@@ -52,13 +52,13 @@ fn get_tag_mapping(file: &str) -> Result<Tags> {
 }
 
 // parse a string and renders a string with updated tags part
-fn parse_and_render(original: &str, known_tags: &Vec<Tag>) -> String {
+fn parse_and_render(original: &str, tag_map: &Vec<Tag>) -> String {
     // Parse the string of data into serde_json::Value.
     let mut parsed_original: Value = serde_json::from_str(original).unwrap();
 
     // extract tags
     let tags = match parsed_original["description"] {
-        Value::String(ref description) => contains_tags(&description, &known_tags),
+        Value::String(ref description) => contains_tags(&description, &tag_map),
         _ => Vec::new(),
     };
 
@@ -105,7 +105,7 @@ mod tests {
 
     #[test]
     fn test_add_tags() {
-        let known_tags = vec![
+        let tag_map = vec![
             Tag {
                 name: "kaufen".to_string(),
                 keywords: vec!["kaufen".to_string(), "kauf".to_string(), "buy".to_string()],
@@ -134,12 +134,12 @@ mod tests {
         });
         let compact = format!("{}", result);
 
-        assert_eq!(parse_and_render(&original, &known_tags), compact);
+        assert_eq!(parse_and_render(&original, &tag_map), compact);
     }
 
     #[test]
     fn test_merge_tags() {
-        let known_tags = vec![
+        let tag_map = vec![
             Tag {
                 name: "kaufen".to_string(),
                 keywords: vec!["kaufen".to_string(), "kauf".to_string(), "buy".to_string()],
@@ -169,12 +169,12 @@ mod tests {
         });
         let compact = format!("{}", result);
 
-        assert_eq!(parse_and_render(&original, &known_tags), compact);
+        assert_eq!(parse_and_render(&original, &tag_map), compact);
     }
 
     #[test]
     fn test_parse_tag_mapping() {
-        let known_tags = vec![
+        let tag_map = vec![
             Tag {
                 name: "kaufen".to_string(),
                 keywords: vec!["kaufen".to_string(), "kauf".to_string(), "buy".to_string()],
@@ -189,10 +189,10 @@ mod tests {
             },
         ];
         assert_eq!(
-            get_tag_mapping("./test-data/AutoTagger/valid-tag-map.json").unwrap(),
-            known_tags
+            get_tag_map("./test-data/AutoTagger/valid-tag-map.json").unwrap(),
+            tag_map
         );
 
-        assert!(get_tag_mapping("./test-data/AutoTagger/invalid-tag-map.json").is_err());
+        assert!(get_tag_map("./test-data/AutoTagger/invalid-tag-map.json").is_err());
     }
 }
