@@ -1,26 +1,34 @@
+use serde::Deserialize;
 use serde_json::Value;
+use std::env;
+use std::fs::File;
+use std::io::prelude::*;
+use std::io::Result;
 
+#[derive(Deserialize, Debug, PartialEq)]
 struct Tag {
     name: String,
     keywords: Vec<String>,
 }
 
+type Tags = Vec<Tag>;
+
+fn useage() {
+    println!(
+        r#"
+AutoTagger <path-to-tag-map>
+"#
+    );
+}
+
 fn main() {
-    // just for testing
-    let known_tags = vec![
-        Tag {
-            name: "kaufen".to_string(),
-            keywords: vec!["kaufen".to_string(), "kauf".to_string(), "buy".to_string()],
-        },
-        Tag {
-            name: "explore".to_string(),
-            keywords: vec![
-                "anschauen".to_string(),
-                "find".to_string(),
-                "search".to_string(),
-            ],
-        },
-    ];
+    let args: Vec<_> = env::args().collect();
+    if args.len() < 2 {
+        useage();
+        std::process::exit(1);
+    }
+
+    let known_tags = get_tag_mapping(&args[1]).unwrap();
 
     // just for testing
     let original = r#"
@@ -29,8 +37,18 @@ fn main() {
             "description" : "this is the description to search"
         }"#;
 
-    parse_and_render(&original, &known_tags);
-    ()
+    let output = parse_and_render(&original, &known_tags);
+    println!("{}", output);
+}
+
+fn get_tag_mapping(file: &str) -> Result<Tags> {
+    // read in known_tags file
+    let mut file = File::open(&file)?;
+    let mut contents = String::new();
+    file.read_to_string(&mut contents)?;
+    // println!("contents {}", contents);
+    let result: Tags = serde_json::from_str(contents.as_ref())?;
+    Ok(result)
 }
 
 // parse a string and renders a string with updated tags part
@@ -152,5 +170,29 @@ mod tests {
         let compact = format!("{}", result);
 
         assert_eq!(parse_and_render(&original, &known_tags), compact);
+    }
+
+    #[test]
+    fn test_parse_tag_mapping() {
+        let known_tags = vec![
+            Tag {
+                name: "kaufen".to_string(),
+                keywords: vec!["kaufen".to_string(), "kauf".to_string(), "buy".to_string()],
+            },
+            Tag {
+                name: "explore".to_string(),
+                keywords: vec![
+                    "anschauen".to_string(),
+                    "find".to_string(),
+                    "search".to_string(),
+                ],
+            },
+        ];
+        assert_eq!(
+            get_tag_mapping("./test-data/AutoTagger/valid-tag-map.json").unwrap(),
+            known_tags
+        );
+
+        assert!(get_tag_mapping("./test-data/AutoTagger/invalid-tag-map.json").is_err());
     }
 }
