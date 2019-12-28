@@ -6,15 +6,27 @@ to install all binaries in `~/.cargo/bin` run.
 cargo install --path .
 ```
 
+# Executables
 
 ## auto-tagger 
 
-automatic adds tags by parsing the description.
+Automatic adds tags by parsing the description.
+The description string will be split in words and the
+matching must be exact, no regular expressions supported (yet?).
+You have to give configuration file `tag-map.json`,
+here is an example :
 
-### How to run
-
-```sh
-auto-tagger ./test-data/AutoTagger/valid-tag-map.json
+```
+[
+  {
+    "name": "buy",
+    "keywords": ["buy" "shopping" "shop" ]
+  },
+  {
+    "name": "bug",
+    "keywords": ["fix", "bug"]
+  }
+]
 ```
 
 ### How to use
@@ -34,7 +46,7 @@ to use for on-modify (just drop the original line)
 
 ```sh
 #!/usr/bin/env bash
-read line
+read original_line
 ~/.cargo/bin/auto-tagger <path/to/tag-map.json>
 ```
 
