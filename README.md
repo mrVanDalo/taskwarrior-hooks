@@ -1,14 +1,20 @@
+# How to install
 
-## AutoTagger
+to install all binaries in `~/.cargo/bin` run.
 
-> under development
+```
+cargo install --path .
+```
+
+
+## auto-tagger 
 
 automatic adds tags by parsing the description.
 
 ### How to run
 
 ```sh
-cargo run ./test-data/AutoTagger/valid-tag-map.json
+auto-tagger ./test-data/AutoTagger/valid-tag-map.json
 ```
 
 ### How to use
@@ -18,7 +24,8 @@ cargo run ./test-data/AutoTagger/valid-tag-map.json
 To use for on-add 
 
 ```sh
-AutoTagger <path/to/tag-map.json>
+#!/usr/bin/env bash
+~/.cargo/bin/auto-tagger <path/to/tag-map.json>
 ```
 
 #### on-modify
@@ -26,8 +33,9 @@ AutoTagger <path/to/tag-map.json>
 to use for on-modify (just drop the original line)
 
 ```sh
+#!/usr/bin/env bash
 read line
-AutoTagger <path/to/tag-map.json>
+~/.cargo/bin/auto-tagger <path/to/tag-map.json>
 ```
 
 # Tests

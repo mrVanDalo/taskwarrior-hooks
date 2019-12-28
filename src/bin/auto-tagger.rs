@@ -18,7 +18,7 @@ type Tags = Vec<Tag>;
 fn useage() {
     println!(
         r#"
-AutoTagger <path-to-tag-map>
+auto-tagger <path-to-tag-map>
 "#
     );
 }
@@ -189,10 +189,10 @@ mod tests {
             },
         ];
         assert_eq!(
-            get_tag_map("./test-data/AutoTagger/valid-tag-map.json").unwrap(),
+            get_tag_map("./test-data/auto-tagger/valid-tag-map.json").unwrap(),
             tag_map
         );
 
-        assert!(get_tag_map("./test-data/AutoTagger/invalid-tag-map.json").is_err());
+        assert!(get_tag_map("./test-data/auto-tagger/invalid-tag-map.json").is_err());
     }
 }
