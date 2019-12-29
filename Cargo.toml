@@ -124,4 +124,9 @@ exclude = [ "shell.nix", "default.nix" ]
 serde_json = "1.0.44"
 serde = { version = "1.0.44", features = ["derive"] }
 task-hookrs = "0.7.0"
+chrono = { version = "0.4", features = ["serde"] }
+regex = "1"
+
+
+
 
