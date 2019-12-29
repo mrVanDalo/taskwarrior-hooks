@@ -101,6 +101,7 @@ mod tests {
         assert_eq!(parse_duration("PT1H").unwrap(), Duration::hours(1));
         assert_eq!(parse_duration("PT1H30M").unwrap(), Duration::minutes(90));
     }
+
     #[test]
     fn test_reschedule() {
         let original = r#"
@@ -137,6 +138,69 @@ mod tests {
         let result_task = import_task(parse_and_render(&original, &modified).as_ref()).unwrap();
 
         assert_eq!(expect_task.scheduled(), result_task.scheduled());
+    }
+
+    #[test]
+    fn test_reschedule2() {
+        let original = r#"
+         {
+           "id": 1,
+           "description": "test",
+           "entry": "20190404T212544Z",
+           "scheduled": "20191219T110000Z",
+           "status": "pending",
+           "uuid": "03f6ff63-26e3-41ba-bd90-a5bdd1be2ea7",
+           "scheduled_recur": "P1DT8H"
+         }"#;
+
+        let modified = r#"
+         {
+           "id": 1,
+           "description": "test",
+           "entry": "20190404T212544Z",
+           "scheduled": "20191219T110000Z",
+           "status": "completed",
+           "uuid": "03f6ff63-26e3-41ba-bd90-a5bdd1be2ea7",
+           "scheduled_recur": "P1DT8H"
+         }"#;
+
+        let mut expect_task = import_task(modified).unwrap();
+
+        let now = Local::today();
+        let new_scheduled = (now + chrono::Duration::days(1)).naive_utc();
+        expect_task.set_scheduled(Some(NaiveDateTime::new(
+            new_scheduled,
+            NaiveTime::from_hms(8, 0, 0),
+        )));
+
+        let result_task = import_task(parse_and_render(&original, &modified).as_ref()).unwrap();
+
+        assert_eq!(expect_task.scheduled(), result_task.scheduled());
+    }
+
+    #[test]
+    fn test_unstouch() {
+        let original = r#"
+         {
+           "id": 1,
+           "description": "test",
+           "entry": "20190404T212544Z",
+           "scheduled": "20191219T110000Z",
+           "status": "pending",
+           "uuid": "03f6ff63-26e3-41ba-bd90-a5bdd1be2ea7"
+         }"#;
+
+        let modified = r#"
+         {
+           "id": 1,
+           "description": "test",
+           "entry": "20190404T212544Z",
+           "scheduled": "20191219T110000Z",
+           "status": "completed",
+           "uuid": "03f6ff63-26e3-41ba-bd90-a5bdd1be2ea7"
+         }"#;
+
+        assert_eq!(parse_and_render(&original, &modified), modified);
     }
 
 }
