@@ -11,6 +11,7 @@ use std::str::FromStr;
 use regex::Match;
 use regex::Regex;
 
+use task_hookrs::date::Date;
 use task_hookrs::import::import_task;
 use task_hookrs::status::TaskStatus::*;
 use task_hookrs::uda::UDAValue;
@@ -45,7 +46,7 @@ fn parse_and_render(original: &str, modified: &str) -> String {
 
     let offset = match modified_task.uda().get("scheduled_recur").unwrap() {
         UDAValue::Str(offset) => parse_duration(offset.as_ref()).unwrap(),
-        _ => panic!("penis"),
+        _ => panic!("couldn't parse the scheduled_recur UDA"),
     };
 
     let now = Local::today();
@@ -53,6 +54,15 @@ fn parse_and_render(original: &str, modified: &str) -> String {
     modified_task.set_scheduled(
         NaiveDateTime::new(new_scheduled, NaiveTime::from_hms(0, 0, 0)).checked_add_signed(offset),
     );
+
+    modified_task
+        .status_mut()
+        .clone_from(original_task.status());
+
+    let end: Option<Date> = None;
+    modified_task.set_end(end);
+
+    println!("don't completing task, just rescheduling");
 
     return to_string(&modified_task).unwrap();
 }
@@ -138,6 +148,7 @@ mod tests {
         let result_task = import_task(parse_and_render(&original, &modified).as_ref()).unwrap();
 
         assert_eq!(expect_task.scheduled(), result_task.scheduled());
+        assert_eq!(Pending, *result_task.status());
     }
 
     #[test]
@@ -176,6 +187,7 @@ mod tests {
         let result_task = import_task(parse_and_render(&original, &modified).as_ref()).unwrap();
 
         assert_eq!(expect_task.scheduled(), result_task.scheduled());
+        assert_eq!(Pending, *result_task.status());
     }
 
     #[test]
