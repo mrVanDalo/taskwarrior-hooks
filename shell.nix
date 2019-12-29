@@ -1,10 +1,16 @@
-{ pkgs ?  import <nixpkgs> {} }:
-pkgs.mkShell {
+{ pkgs ? import <nixpkgs> { } }:
+let
+  taskwarrior-hooks = import ./default.nix {
+    inherit (pkgs) fetchFromGitHub stdenv rustPlatform;
+  };
 
-  # needed pkgs
-  # -----------
+in pkgs.mkShell {
+
   buildInputs = with pkgs; [
-    rustc cargo rustfmt
+    rustc
+    cargo
+    rustfmt
+    # taskwarrior-hooks
   ];
 
 }

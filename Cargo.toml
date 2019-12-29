@@ -116,7 +116,7 @@ license = "GPL-3.0"
 maintenance = { status = "actively-developed" }
 
 # exclude theses files
-exclude = [ "shell.nix" ]
+exclude = [ "shell.nix" "default.nix" ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
