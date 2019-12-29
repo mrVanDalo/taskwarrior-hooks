@@ -28,7 +28,7 @@ fn main() {
 }
 
 fn parse_and_render(original: &str, modified: &str) -> String {
-    let mut modified_task = import_task(modified).unwrap();
+    let mut modified_task = import_task(modified).expect(modified);
     if !modified_task.uda().contains_key("scheduled_recur") {
         return String::from(modified);
     }
@@ -156,7 +156,7 @@ mod tests {
         let original = r#"
          {
            "id": 1,
-           "description": "test",
+           "description": "this : is a & description",
            "entry": "20190404T212544Z",
            "scheduled": "20191219T110000Z",
            "status": "pending",
@@ -167,7 +167,7 @@ mod tests {
         let modified = r#"
          {
            "id": 1,
-           "description": "test",
+           "description": "this : is a & description",
            "entry": "20190404T212544Z",
            "scheduled": "20191219T110000Z",
            "status": "completed",
