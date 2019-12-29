@@ -8,6 +8,9 @@ cargo install --path .
 
 # Executables
 
+* [scheduled-recur](#scheduled-recur) reschedule tasks instead of completing them.
+* [auto-tagger](#auto-tagger) extract tags from description for convenience .
+
 ## scheduled-recur
 
 Reschedule tasks, instead of completing them.
@@ -34,7 +37,7 @@ and this hook to `~/.task/hooks/on-modify.scheduled-recur.sh`
 ### use
 
 Duration are set using
-[ISO 8601](https://en.wikipedia.org/wiki/ISO_8601#Durations).
+[ISO8601](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 For example : `scheduled_recur:P1D` or `scheduled_recur:P1DT8H`
 
 ## auto-tagger 
@@ -80,11 +83,3 @@ to use for on-modify (just drop the original line)
 read original_line
 ~/.cargo/bin/auto-tagger <path/to/tag-map.json>
 ```
-
-# Tests
-
-```
-cargo test
-```
-
-will test everything
