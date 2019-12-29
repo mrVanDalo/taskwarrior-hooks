@@ -8,12 +8,44 @@ cargo install --path .
 
 # Executables
 
+## scheduled-recur
+
+Reschedule tasks, instead of completing them.
+Task will be rescheduled `today + (given duration)`.
+
+### setup
+
+Add this UDA to your `~/.taskrc`.
+
+```
+# scheduled_recur
+uda.scheduled_recur.type=duration
+uda.scheduled_recur.label=Scheduled Recurance
+# END scheduled_recur
+```
+
+and this hook to `~/.task/hooks/on-modify.scheduled-recur.sh`
+
+```sh
+#!/usr/bin/env bash
+~/.cargo/bin/scheduled-recur
+```
+
+### use
+
+Duration are set using
+[ISO 8601](https://en.wikipedia.org/wiki/ISO_8601#Durations).
+For example : `scheduled_recur:P1D` or `scheduled_recur:P1DT8H`
+
 ## auto-tagger 
 
 Automatic adds tags by parsing the description.
 The description string will be split in words and the
 matching must be exact, no regular expressions supported (yet?).
-You have to give configuration file `tag-map.json`,
+
+### setup
+
+You have to define a configuration file `tag-map.json`,
 here is an example :
 
 ```
@@ -29,7 +61,6 @@ here is an example :
 ]
 ```
 
-### How to use
 
 #### on-add 
 
