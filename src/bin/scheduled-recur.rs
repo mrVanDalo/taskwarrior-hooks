@@ -45,7 +45,7 @@ fn parse_and_render(original: &str, modified: &str) -> String {
     }
 
     let offset = match modified_task.uda().get("scheduled_recur").unwrap() {
-        UDAValue::Str(offset) => parse_duration(offset.as_ref()).unwrap(),
+        UDAValue::Str(offset) => parse_duration(offset.as_ref()),
         _ => panic!("couldn't parse the scheduled_recur UDA"),
     };
 
@@ -67,15 +67,21 @@ fn parse_and_render(original: &str, modified: &str) -> String {
     return to_string(&modified_task).unwrap();
 }
 
-fn parse_duration(offset: &str) -> Result<Duration, ()> {
-    let re =
+fn parse_duration(offset: &str) -> Duration {
+    let iso_8601 =
         Regex::new(r"P(?:(\d+)*W)*(?:(\d+)*D)*T*(?:(\d+)*H)*(?:(\d+)*M)*(?:(\d+)*S)*").unwrap();
 
-    for caps in re.captures_iter(offset) {
+    if !iso_8601.is_match(offset) {
+        return i64::from_str(offset)
+            .map(|seconds| Duration::seconds(seconds))
+            .expect("could not parse scheduled as seconds nor as ISO_8601");
+    }
+
+    for caps in iso_8601.captures_iter(offset) {
         // Note that all of the unwraps are actually OK for this regex
         // because the only way for the regex to match is if all of the
         // capture groups match. This is not true in general though!
-        return Ok(Duration::weeks(cap_parser(caps.get(1)))
+        return Duration::weeks(cap_parser(caps.get(1)))
             .checked_add(&Duration::days(cap_parser(caps.get(2))))
             .unwrap()
             .checked_add(&Duration::hours(cap_parser(caps.get(3))))
@@ -83,10 +89,10 @@ fn parse_duration(offset: &str) -> Result<Duration, ()> {
             .checked_add(&Duration::minutes(cap_parser(caps.get(4))))
             .unwrap()
             .checked_add(&Duration::seconds(cap_parser(caps.get(5))))
-            .unwrap());
+            .unwrap();
     }
 
-    Ok(Duration::weeks(0))
+    Duration::weeks(0)
 }
 
 #[inline]
@@ -104,13 +110,15 @@ mod tests {
 
     #[test]
     fn test_parse_duration() {
-        assert_eq!(parse_duration("P1W").unwrap(), Duration::weeks(1));
-        assert_eq!(parse_duration("P2W").unwrap(), Duration::weeks(2));
-        assert_eq!(parse_duration("P2W1D").unwrap(), Duration::days(15));
-        assert_eq!(parse_duration("P1DT1H").unwrap(), Duration::hours(25));
-        assert_eq!(parse_duration("P14D").unwrap(), Duration::days(14));
-        assert_eq!(parse_duration("PT1H").unwrap(), Duration::hours(1));
-        assert_eq!(parse_duration("PT1H30M").unwrap(), Duration::minutes(90));
+        assert_eq!(parse_duration("P1W"), Duration::weeks(1));
+        assert_eq!(parse_duration("P2W"), Duration::weeks(2));
+        assert_eq!(parse_duration("P2W1D"), Duration::days(15));
+        assert_eq!(parse_duration("P1DT1H"), Duration::hours(25));
+        assert_eq!(parse_duration("P14D"), Duration::days(14));
+        assert_eq!(parse_duration("PT1H"), Duration::hours(1));
+        assert_eq!(parse_duration("PT1H30M"), Duration::minutes(90));
+        // seconds
+        assert_eq!(parse_duration("1209600"), Duration::days(14));
     }
 
     #[test]
@@ -213,45 +221,6 @@ mod tests {
            "status": "completed",
            "uuid": "03f6ff63-26e3-41ba-bd90-a5bdd1be2ea7",
            "scheduled_recur": "P14D"
-         }"#;
-
-        let mut expect_task = import_task(modified).unwrap();
-
-        let now = Local::today();
-        let new_scheduled = (now + chrono::Duration::days(14)).naive_utc();
-        expect_task.set_scheduled(Some(NaiveDateTime::new(
-            new_scheduled,
-            NaiveTime::from_hms(0, 0, 0),
-        )));
-
-        let result_task = import_task(parse_and_render(&original, &modified).as_ref()).unwrap();
-
-        assert_eq!(expect_task.scheduled(), result_task.scheduled());
-        assert_eq!(Pending, *result_task.status());
-    }
-
-    #[test]
-    fn test_using_seconds() {
-        let original = r#"
-         {
-           "id": 1,
-           "description": "this : is a & description",
-           "entry": "20190404T212544Z",
-           "scheduled": "20191219T110000Z",
-           "status": "pending",
-           "uuid": "03f6ff63-26e3-41ba-bd90-a5bdd1be2ea7",
-           "scheduled_recur": "1209600"
-         }"#;
-
-        let modified = r#"
-         {
-           "id": 1,
-           "description": "this : is a & description",
-           "entry": "20190404T212544Z",
-           "scheduled": "20191219T110000Z",
-           "status": "completed",
-           "uuid": "03f6ff63-26e3-41ba-bd90-a5bdd1be2ea7",
-           "scheduled_recur": "1209600"
          }"#;
 
         let mut expect_task = import_task(modified).unwrap();
