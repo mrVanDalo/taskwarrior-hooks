@@ -3,7 +3,8 @@ extern crate chrono;
 use chrono::Duration;
 use chrono::Local;
 use chrono::NaiveDateTime;
-use chrono::NaiveTime;
+use chrono::Offset;
+use core::ops::Sub;
 use serde_json::to_string;
 use std::io;
 use std::str::FromStr;
@@ -25,6 +26,14 @@ fn main() {
 
     let output = parse_and_render(&original, &modified);
     println!("{}", output);
+}
+
+/* return the start of today in utc, but of your local timezone */
+fn today_in_utc() -> NaiveDateTime {
+    Local::today()
+        .naive_local()
+        .and_hms(0, 0, 0)
+        .sub(Local::today().offset().fix())
 }
 
 fn parse_and_render(original: &str, modified: &str) -> String {
@@ -49,11 +58,8 @@ fn parse_and_render(original: &str, modified: &str) -> String {
         _ => panic!("couldn't parse the scheduled_recur UDA"),
     };
 
-    let now = Local::today();
-    let new_scheduled = (now).naive_utc();
-    modified_task.set_scheduled(
-        NaiveDateTime::new(new_scheduled, NaiveTime::from_hms(0, 0, 0)).checked_add_signed(offset),
-    );
+    let new_scheduled = today_in_utc();
+    modified_task.set_scheduled(new_scheduled.checked_add_signed(offset));
 
     modified_task
         .status_mut()
@@ -146,16 +152,10 @@ mod tests {
          }"#;
 
         let mut expect_task = import_task(modified).unwrap();
-
-        let now = Local::today();
-        let new_scheduled = (now + chrono::Duration::days(1)).naive_utc();
-        expect_task.set_scheduled(Some(NaiveDateTime::new(
-            new_scheduled,
-            NaiveTime::from_hms(0, 0, 0),
-        )));
+        let new_scheduled = today_in_utc() + chrono::Duration::days(1);
+        expect_task.set_scheduled(Some(new_scheduled));
 
         let result_task = import_task(parse_and_render(&original, &modified).as_ref()).unwrap();
-
         assert_eq!(expect_task.scheduled(), result_task.scheduled());
         assert_eq!(Pending, *result_task.status());
     }
@@ -186,12 +186,8 @@ mod tests {
 
         let mut expect_task = import_task(modified).unwrap();
 
-        let now = Local::today();
-        let new_scheduled = (now + chrono::Duration::days(1)).naive_utc();
-        expect_task.set_scheduled(Some(NaiveDateTime::new(
-            new_scheduled,
-            NaiveTime::from_hms(8, 0, 0),
-        )));
+        let new_scheduled = today_in_utc() + chrono::Duration::hours(24 + 8);
+        expect_task.set_scheduled(Some(new_scheduled));
 
         let result_task = import_task(parse_and_render(&original, &modified).as_ref()).unwrap();
 
@@ -225,12 +221,8 @@ mod tests {
 
         let mut expect_task = import_task(modified).unwrap();
 
-        let now = Local::today();
-        let new_scheduled = (now + chrono::Duration::days(14)).naive_utc();
-        expect_task.set_scheduled(Some(NaiveDateTime::new(
-            new_scheduled,
-            NaiveTime::from_hms(0, 0, 0),
-        )));
+        let new_scheduled = today_in_utc() + chrono::Duration::days(14);
+        expect_task.set_scheduled(Some(new_scheduled));
 
         let result_task = import_task(parse_and_render(&original, &modified).as_ref()).unwrap();
 
@@ -261,6 +253,13 @@ mod tests {
          }"#;
 
         assert_eq!(parse_and_render(&original, &modified), modified);
+    }
+
+    #[test]
+    #[ignore]
+    fn test_timezone_test() {
+        // $> date --utc --date=$(date +"%Y-%m-%dT00:00:00%z") +"%Y-%m-%dT%H:%M:%SZ"
+        assert_eq!(today_in_utc().to_string(), "2020-01-24 11:00:00");
     }
 
 }
