@@ -2,15 +2,15 @@
 
 rustPlatform.buildRustPackage rec {
   name = "taskwarrior-hooks-${version}";
-  version = "0.1.0";
+  version = "0.2.2";
   src = fetchFromGitHub {
     owner = "mrVanDalo";
     repo = "taskwarrior-hooks";
     rev = "${version}";
-    sha256 = "1vlfnp2ib009zb8j6m0l47qnh9ipsikcm00cjjcbnsgknihwcn6r";
+    sha256 = "1mj0k6ykac332667315kqrvg37j8r8078g48nafv7ini6lw8djas";
   };
 
-  cargoSha256 = "1wx974dy7wac541nb3ci8jl5zr96q0qx0b2w1kv0802dmkkk4rsp";
+  cargoSha256 = "1ijnh2ank9slmfglw4yhnycl11x26m94m2hiq3hcasmbs6c39zj5";
   verifyCargoDeps = true;
 
   meta = with stdenv.lib; {
