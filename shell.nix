@@ -4,7 +4,8 @@ let
     inherit (pkgs) fetchFromGitHub stdenv rustPlatform;
   };
 
-in pkgs.mkShell {
+in
+pkgs.mkShell {
 
   buildInputs = with pkgs; [
     rustc

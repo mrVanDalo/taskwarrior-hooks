@@ -1,24 +1,15 @@
-{ rustPlatform, fetchFromGitHub, stdenv, ... }:
+{ rustPlatform, fetchFromGitHub, stdenv, lib, ... }:
 
 rustPlatform.buildRustPackage rec {
   name = "taskwarrior-hooks-${version}";
-  version = "0.2.2";
-  src = fetchFromGitHub {
-    owner = "mrVanDalo";
-    repo = "taskwarrior-hooks";
-    rev = "${version}";
-    sha256 = "1mj0k6ykac332667315kqrvg37j8r8078g48nafv7ini6lw8djas";
-  };
-
-  cargoSha256 = "1ijnh2ank9slmfglw4yhnycl11x26m94m2hiq3hcasmbs6c39zj5";
+  version = "0.2.3";
+  src = ./.;
+  cargoSha256 = "sha256-O3ui3TmkqLhYorL7zsOLawfWpIZOXb2CBG4ei8OBRGY=";
   verifyCargoDeps = true;
-
-  meta = with stdenv.lib; {
-    description =
-      "A fast line-oriented regex search tool, similar to ag and ack";
+  meta = with lib; {
+    description = "taskwarrior hook collecton";
     homepage = "https://github.com/mrvandalo/taskwarrior-hooks";
-    license = licenses.gplv3;
-    maintainers = [ maintainers.mrVanDalo ];
+    license = licenses.gpl3Plus;
     platforms = platforms.all;
   };
 }
