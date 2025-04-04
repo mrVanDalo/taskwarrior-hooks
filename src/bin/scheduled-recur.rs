@@ -261,5 +261,4 @@ mod tests {
         // $> date --utc --date=$(date +"%Y-%m-%dT00:00:00%z") +"%Y-%m-%dT%H:%M:%SZ"
         assert_eq!(today_in_utc().to_string(), "2020-01-24 11:00:00");
     }
-
 }

@@ -174,11 +174,11 @@ mod tests {
         }"#;
 
         let result = json!(
-            {
-                "name": "palo",
-                "description" : "this : is & strange description ! to search",
-                "tags" : ["hallo", "explore"]
-            });
+        {
+            "name": "palo",
+            "description" : "this : is & strange description ! to search",
+            "tags" : ["hallo", "explore"]
+        });
         let compact = format!("{}", result);
 
         assert_eq!(parse_and_render(&original, &tag_map), compact);
